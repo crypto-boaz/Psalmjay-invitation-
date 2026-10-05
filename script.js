@@ -153,7 +153,7 @@ lightbox.addEventListener('touchend', event => {
 }, { passive: true });
 
 document.querySelector('#rsvpButton').addEventListener('click', () => {
-  window.alert('Thank you for being part of our story. RSVP details will be shared soon.');
+  window.alert('We look forward to celebrating with you on 16 October 2026! RSVP details will be shared soon.');
 });
 
 document.querySelector('#soundToggle').addEventListener('click', async event => {
