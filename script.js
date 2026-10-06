@@ -6,13 +6,30 @@ const track = document.querySelector('#galleryTrack');
 const cards = [...document.querySelectorAll('.gallery-card')];
 const lightbox = document.querySelector('#lightbox');
 const lightboxImage = document.querySelector('#lightboxImage');
-const captions = ['THE BEGINNING', 'LITTLE THINGS', 'OUR PROMISE', 'FOREVER STARTS HERE', 'THE CELEBRATION'];
+const captions = [
+  'THE BEGINNING', 'LITTLE THINGS', 'OUR PROMISE', 'FOREVER STARTS HERE', 'THE CELEBRATION',
+  'A MOMENT OF PRAYER', 'QUIET JOY', 'THE GROOM', 'A PORTRAIT OF HIM', 'HER MOMENT',
+  'THE PROMISE', 'SHE SAID YES', 'HER SMILE', 'A CLOSER LOOK', 'LOVE IN BLOOM',
+  'HER RADIANT MOMENT', 'A LITTLE SPARKLE'
+];
 const photos = [
   'assets/optimized/photo-01.jpg',
   'assets/optimized/photo-05.jpg',
   'assets/optimized/photo-03.jpg',
   'assets/optimized/photo-04.jpg',
-  'assets/optimized/photo-02.jpg'
+  'assets/optimized/photo-02.jpg',
+  'assets/personal/photo-06.jpg',
+  'assets/personal/photo-07.jpg',
+  'assets/personal/photo-08.jpg',
+  'assets/personal/photo-09.jpg',
+  'assets/personal/photo-10.jpg',
+  'assets/personal/photo-11.jpg',
+  'assets/personal/photo-12.jpg',
+  'assets/personal/photo-13.jpg',
+  'assets/personal/photo-14.jpg',
+  'assets/personal/photo-15.jpg',
+  'assets/personal/photo-16.jpg',
+  'assets/personal/photo-17.jpg'
 ];
 let galleryIndex = 0;
 let lightboxIndex = 0;
@@ -42,11 +59,18 @@ document.querySelectorAll('.reveal').forEach(element => revealObserver.observe(e
 
 function updateGallery() {
   const rect = gallery.getBoundingClientRect();
-  const range = Math.max(1, gallery.offsetHeight - window.innerHeight);
-  const progress = Math.min(1, Math.max(0, -rect.top / range));
-  const maxTravel = Math.max(0, track.scrollWidth - window.innerWidth * 0.78);
-  const offset = progress * maxTravel;
-  track.style.transform = `translate3d(${-offset + dragDelta}px,0,0)`;
+  const mobileSwipe = window.matchMedia('(max-width: 760px)').matches;
+  let progress;
+  if (mobileSwipe) {
+    const maxScroll = Math.max(1, track.scrollWidth - track.clientWidth);
+    progress = Math.min(1, Math.max(0, track.scrollLeft / maxScroll));
+    track.style.transform = 'none';
+  } else {
+    const range = Math.max(1, gallery.offsetHeight - window.innerHeight);
+    progress = Math.min(1, Math.max(0, -rect.top / range));
+    const maxTravel = Math.max(0, track.scrollWidth - window.innerWidth * 0.78);
+    track.style.transform = `translate3d(${-progress * maxTravel + dragDelta}px,0,0)`;
+  }
   let closest = 0;
   let closestDistance = Infinity;
   cards.forEach((card, index) => {
@@ -56,8 +80,20 @@ function updateGallery() {
     card.classList.toggle('active', distance < window.innerWidth * 0.41);
   });
   galleryIndex = closest;
-  document.querySelector('#galleryProgress').innerHTML = `${String(closest + 1).padStart(2, '0')} <i>—</i> 05`;
+  const total = String(cards.length).padStart(2, '0');
+  document.querySelector('#galleryProgress').innerHTML = `${String(closest + 1).padStart(2, '0')} <i>—</i> ${total}`;
+  document.querySelector('.gallery-bottom span:last-child').textContent = `${total} / ${total}`;
   document.querySelector('#progressFill').style.width = `${progress * 100}%`;
+}
+function sizeGallery() {
+  if (window.matchMedia('(max-width: 760px)').matches) {
+    gallery.style.height = 'auto';
+    track.style.transform = 'none';
+    return;
+  }
+  const maxTravel = Math.max(0, track.scrollWidth - window.innerWidth * 0.78);
+  const scrollRange = Math.max(window.innerHeight * 2.6, maxTravel / 0.86);
+  gallery.style.height = `${window.innerHeight + scrollRange}px`;
 }
 let galleryTick = false;
 function requestGalleryUpdate() {
@@ -66,10 +102,13 @@ function requestGalleryUpdate() {
   requestAnimationFrame(() => { updateGallery(); galleryTick = false; });
 }
 window.addEventListener('scroll', requestGalleryUpdate, { passive: true });
-window.addEventListener('resize', requestGalleryUpdate);
+track.addEventListener('scroll', requestGalleryUpdate, { passive: true });
+window.addEventListener('resize', () => { sizeGallery(); requestGalleryUpdate(); });
+sizeGallery();
 requestGalleryUpdate();
 
 track.addEventListener('pointerdown', event => {
+  if (window.matchMedia('(max-width: 760px)').matches) return;
   if (event.target.closest('.gallery-card')) {
     pointerStart = { x: event.clientX, y: window.scrollY, dragged: false };
     track.setPointerCapture(event.pointerId);
@@ -77,7 +116,7 @@ track.addEventListener('pointerdown', event => {
   }
 });
 track.addEventListener('pointermove', event => {
-  if (!pointerStart) return;
+  if (!pointerStart || window.matchMedia('(max-width: 760px)').matches) return;
   const dx = event.clientX - pointerStart.x;
   if (Math.abs(dx) > 7) pointerStart.dragged = true;
   dragDelta = dx;
@@ -109,7 +148,7 @@ function showPhoto(index) {
   window.setTimeout(() => {
     lightboxImage.src = photos[lightboxIndex];
     document.querySelector('#lightboxCaption').textContent = captions[lightboxIndex];
-    document.querySelector('#lightboxCount').textContent = `${String(lightboxIndex + 1).padStart(2, '0')} / 05`;
+    document.querySelector('#lightboxCount').textContent = `${String(lightboxIndex + 1).padStart(2, '0')} / ${String(photos.length).padStart(2, '0')}`;
     lightboxImage.onload = () => lightboxImage.classList.remove('changing');
   }, 160);
 }
